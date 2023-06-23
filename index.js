@@ -12,6 +12,18 @@ let file
 
 let ratio = 1
 
+let originalFileName
+
+const getResizedFileName = (suffix) => {
+  const fileNameParts = originalFileName.split('.')
+  return `${fileNameParts[0]}_${suffix}.${fileNameParts[1]}`
+}
+
+const setResizedFileName = (resizedFileName) => {
+  fileNameEl.value = resizedFileName
+  downloadBtnEl.download = resizedFileName
+}
+
 fileInputEl.addEventListener('change', async event => {
   file = event.target.files && event.target.files[0]
   if (!file) {
@@ -28,27 +40,29 @@ fileInputEl.addEventListener('change', async event => {
     ratio = imageEl.naturalWidth / imageEl.naturalHeight
   })
 
-  fileNameEl.value = file.name
+  originalFileName = file.name
 
+  setResizedFileName(getResizedFileName('resized'))
+  
   const onNameChange =  event => {
     downloadBtnEl.download = event.target.value
   }
   fileNameEl.removeEventListener('change', onNameChange)
   fileNameEl.addEventListener('change', onNameChange)
-
-  downloadBtnEl.download = file.name
 })
 
 widthEl.addEventListener('change', event => {
   heightEl.value = Math.round(event.target.valueAsNumber / ratio)
   downloadBtnEl.href = undefined
   downloadBtnEl.querySelector('button').disabled = true
+  setResizedFileName(getResizedFileName(`resized_${event.target.valueAsNumber}x${heightEl.value}`))
 })
 
 heightEl.addEventListener('change', event => {
   widthEl.value = Math.round(event.target.valueAsNumber * ratio)
   downloadBtnEl.href
   downloadBtnEl.querySelector('button').disabled = true
+  setResizedFileName(getResizedFileName(`resized_${widthEl.value}x${event.target.valueAsNumber}`))
 })
 
 resizeBtnEl.addEventListener('click', async () => {
