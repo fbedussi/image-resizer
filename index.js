@@ -8,28 +8,35 @@ const fileNameEl = document.querySelector('.fileName input')
 const resizeBtnEl = document.querySelector('.resize')
 const downloadBtnEl = document.querySelector('.download')
 
+const getSharedImage = () => {
+  return new Promise((resolve) => {
+    const onmessage = (event) => {
+      if (event.data.action !== 'load-image') return;
+      resolve(event.data.file);
+      navigator.serviceWorker.removeEventListener('message', onmessage);
+    };
+
+    navigator.serviceWorker.addEventListener('message', onmessage);
+
+    // This message is picked up by the service worker - it's how it knows we're ready to receive
+    // the file.
+    navigator.serviceWorker.controller.postMessage('share-ready');
+  });
+}
+
+navigator.serviceWorker.register("sw.js").then(() => {
+  getSharedImage().then(f => file = f)
+})
+
+
 let file
 
 let ratio = 1
 
 let originalFileName
 
-const getResizedFileName = (suffix) => {
-  const fileNameParts = originalFileName.split('.')
-  return `${fileNameParts[0]}_${suffix}.${fileNameParts[1]}`
-}
 
-const setResizedFileName = (resizedFileName) => {
-  fileNameEl.value = resizedFileName
-  downloadBtnEl.download = resizedFileName
-}
-
-fileInputEl.addEventListener('change', async event => {
-  file = event.target.files && event.target.files[0]
-  if (!file) {
-    throw new Error('No image file')
-  }
-
+const onFileLoad = () => {
   const src = URL.createObjectURL(file)
   imageEl.hidden = false
   imageEl.src = src
@@ -49,6 +56,25 @@ fileInputEl.addEventListener('change', async event => {
   }
   fileNameEl.removeEventListener('change', onNameChange)
   fileNameEl.addEventListener('change', onNameChange)
+}
+
+const getResizedFileName = (suffix) => {
+  const fileNameParts = originalFileName.split('.')
+  return `${fileNameParts[0]}_${suffix}.${fileNameParts[1]}`
+}
+
+const setResizedFileName = (resizedFileName) => {
+  fileNameEl.value = resizedFileName
+  downloadBtnEl.download = resizedFileName
+}
+
+fileInputEl.addEventListener('change', async event => {
+  file = event.target.files && event.target.files[0]
+  if (!file) {
+    throw new Error('No image file')
+  }
+
+  onFileLoad()
 })
 
 widthEl.addEventListener('change', event => {
