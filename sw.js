@@ -1,16 +1,11 @@
-function serveShareTarget(event) {
-  const dataPromise = event.request.formData();
-
-  // Redirect so the user can refresh the page without resending data.
-  event.respondWith(Response.redirect('/?share-target'));
-
+const serveShareTarget = async (event) => {
   event.waitUntil(
     (async function () {
       // The page sends this message to tell the service worker it's ready to receive the file.
       await nextMessage('share-ready');
       const client = await self.clients.get(event.resultingClientId);
-      const data = await dataPromise;
-      const file = data.get('file');
+      const data = await event.request.formData();
+      const file = data.get('photos');
       client.postMessage({ file, action: 'load-image' });
     })(),
   );

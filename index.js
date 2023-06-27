@@ -11,7 +11,10 @@ const downloadBtnEl = document.querySelector('.download')
 const getSharedImage = () => {
   return new Promise((resolve) => {
     const onmessage = (event) => {
-      if (event.data.action !== 'load-image') return;
+      if (event.data.action !== 'load-image') {
+        return;
+      }
+
       resolve(event.data.file);
       navigator.serviceWorker.removeEventListener('message', onmessage);
     };
@@ -25,7 +28,10 @@ const getSharedImage = () => {
 }
 
 navigator.serviceWorker.register("sw.js").then(() => {
-  getSharedImage().then(f => file = f)
+  getSharedImage().then(f => {
+    file = f
+    onFileLoad()
+  })
 })
 
 
