@@ -456,7 +456,7 @@
   "theme_color": "#000000",
   "background_color": "#ffffff",
   "share_target": {
-    "action": "filecollector",
+    "action": "/image-resizer",
     "enctype": "multipart/form-data",
     "method": "POST",
     "params": {
