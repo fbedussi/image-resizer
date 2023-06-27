@@ -456,18 +456,20 @@
   "theme_color": "#000000",
   "background_color": "#ffffff",
   "share_target": {
-    "action": "/file-collector",
-    "method": "POST",
+    "action": "filecollector",
     "enctype": "multipart/form-data",
+    "method": "POST",
     "params": {
-      "title": "name",
+      "title": "title",
+      "text": "text",
+      "url": "url",
       "files": [
         {
-          "name": "photos",
+          "name": "externalMedia",
           "accept": [
             "image/jpeg",
-            ".jpeg",
-            ".jpg"
+            "image/png",
+            "image/gif"
           ]
         }
       ]

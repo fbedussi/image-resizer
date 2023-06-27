@@ -5,7 +5,7 @@ const serveShareTarget = async (event) => {
       await nextMessage('share-ready');
       const client = await self.clients.get(event.resultingClientId);
       const data = await event.request.formData();
-      const file = data.get('photos');
+      const file = data.get('externalMedia');
       client.postMessage({ file, action: 'load-image' });
     })(),
   );
