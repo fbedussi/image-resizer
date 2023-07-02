@@ -15,23 +15,22 @@ const getSharedImage = () => {
         return;
       }
 
-      resolve(event.data.file);
+      file = event.data.file
+      onFileLoad()
+
       navigator.serviceWorker.removeEventListener('message', onmessage);
+      
+      resolve()
     };
 
     navigator.serviceWorker.addEventListener('message', onmessage);
 
-    // This message is picked up by the service worker - it's how it knows we're ready to receive
-    // the file.
-    navigator.serviceWorker.controller.postMessage('share-ready');
+    navigator.serviceWorker.controller?.postMessage('share-ready');
   });
 }
 
 navigator.serviceWorker.register("sw.js").then(() => {
-  getSharedImage().then(f => {
-    file = f
-    onFileLoad()
-  })
+  getSharedImage()
 })
 
 
@@ -104,3 +103,13 @@ resizeBtnEl.addEventListener('click', async () => {
   downloadBtnEl.href = dataUrl
   downloadBtnEl.querySelector('button').disabled = false
 })
+
+
+// const FD = new FormData();
+// FD.append('externalMedia', 1)
+
+// fetch('https://www.francescobedussi.it/image-resizer', {
+//   method: 'POST', 
+//   body: FD,
+//   mode: 'no-cors'
+// })
