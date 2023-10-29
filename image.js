@@ -1,4 +1,4 @@
-export const resizeImage = (file, maxWidth, maxHeight) => new Promise((res, rej) => {
+export const resizeImage = (file, maxWidth, maxHeight, rotation) => new Promise((res, rej) => {
   const fileType = file.type
 
   const reader = new FileReader()
@@ -24,15 +24,31 @@ export const resizeImage = (file, maxWidth, maxHeight) => new Promise((res, rej)
       }
 
       const canvas = document.createElement('canvas');
-      canvas.width = imageWidth;
-      canvas.height = imageHeight;
+      // document.querySelector('#canvas-debug').appendChild(canvas)
+
+      const isRotated = [1,3].includes(Math.round(rotation / 90))
+      if (isRotated) {
+        canvas.width = imageHeight;
+        canvas.height = imageWidth;
+      } else {
+        canvas.width = imageWidth;
+        canvas.height = imageHeight;
+      }
 
       const ctx = canvas.getContext("2d");
       if (!ctx) {
         return rej(new Error("no canvas context"))
       }
+      
 
-      ctx.drawImage(image, 0, 0, imageWidth, imageHeight);
+      if (isRotated) {
+        ctx.translate(canvas.width/2,canvas.height/2);
+        ctx.rotate(rotation * Math.PI / 180);
+        // ctx.rotate(Math.PI/2);image.height
+        ctx.drawImage(image,-imageWidth/2,-imageHeight/2, imageWidth, imageHeight);
+      } else {
+        ctx.drawImage(image, 0, 0, imageWidth, imageHeight);
+      }
 
       // The resized file ready for upload
       canvas.toBlob((blob) => {

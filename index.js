@@ -6,7 +6,16 @@ const widthEl = document.querySelector('.width input')
 const heightEl = document.querySelector('.height input')
 const fileNameEl = document.querySelector('.fileName input')
 const resizeBtnEl = document.querySelector('.resize')
+const rotateBtnEl = document.querySelector('.rotate')
 const downloadBtnEl = document.querySelector('.download')
+
+const LAST_USED_HEIGHT = 'last-used-height'
+const LAST_USED_WIDTH = 'last-used-width'
+
+const lastUsedWidth = window.localStorage.getItem(LAST_USED_WIDTH)
+const lastUsedHeight = window.localStorage.getItem(LAST_USED_HEIGHT)
+widthEl.value = lastUsedWidth
+heightEl.value = lastUsedHeight
 
 const getSharedImage = () => {
   return new Promise((resolve) => {
@@ -40,6 +49,8 @@ let ratio = 1
 
 let originalFileName
 
+let rotation = 0
+
 
 const onFileLoad = () => {
   const src = URL.createObjectURL(file)
@@ -47,9 +58,13 @@ const onFileLoad = () => {
   imageEl.src = src
   
   imageEl.addEventListener('load', () => {
-    widthEl.value = imageEl.naturalWidth
-    heightEl.value = imageEl.naturalHeight
     ratio = imageEl.naturalWidth / imageEl.naturalHeight
+    if (!lastUsedHeight && !lastUsedWidth) {
+      widthEl.value = Math.round(imageEl.naturalWidth)
+      heightEl.value = Math.round(imageEl.naturalHeight)
+    } else {
+      widthEl.value = Math.round(heightEl.value * ratio)
+    }
   })
 
   originalFileName = file.name
@@ -82,34 +97,39 @@ fileInputEl.addEventListener('change', async event => {
   onFileLoad()
 })
 
+const getFileSuffix = (width, height, rotation) => rotation !== 0 ? `resized_${width}x${height}_${rotation}` : `resized_${width}x${height}`
+ 
 widthEl.addEventListener('change', event => {
   heightEl.value = Math.round(event.target.valueAsNumber / ratio)
   downloadBtnEl.href = undefined
   downloadBtnEl.querySelector('button').disabled = true
-  setResizedFileName(getResizedFileName(`resized_${event.target.valueAsNumber}x${heightEl.value}`))
+  setResizedFileName(getResizedFileName(getFileSuffix(event.target.valueAsNumber, heightEl.value, rotation)))
 })
 
 heightEl.addEventListener('change', event => {
   widthEl.value = Math.round(event.target.valueAsNumber * ratio)
   downloadBtnEl.href
   downloadBtnEl.querySelector('button').disabled = true
-  setResizedFileName(getResizedFileName(`resized_${widthEl.value}x${event.target.valueAsNumber}`))
+  setResizedFileName(getResizedFileName(getFileSuffix(widthEl.value, event.target.valueAsNumber, rotation)))
 })
 
 resizeBtnEl.addEventListener('click', async () => {
-  const resizedImage = await resizeImage(file, widthEl.valueAsNumber,  heightEl.valueAsNumber)
+  window.localStorage.setItem(LAST_USED_WIDTH, widthEl.value)
+  window.localStorage.setItem(LAST_USED_HEIGHT, heightEl.value)
+  const resizedImage = await resizeImage(file, widthEl.valueAsNumber,  heightEl.valueAsNumber, rotation)
   const dataUrl = await toDataURL(resizedImage)
 
   downloadBtnEl.href = dataUrl
   downloadBtnEl.querySelector('button').disabled = false
 })
 
-
-// const FD = new FormData();
-// FD.append('externalMedia', 1)
-
-// fetch('https://www.francescobedussi.it/image-resizer', {
-//   method: 'POST', 
-//   body: FD,
-//   mode: 'no-cors'
-// })
+rotateBtnEl.addEventListener('click', async () => {
+  rotation = (rotation + 90) % 360
+  const currentHeight = heightEl.value
+  const currentWidth = widthEl.value
+  heightEl.value = currentWidth
+  widthEl.value = currentHeight
+  imageEl.setAttribute('style', `transform: rotate(${rotation}deg)`) 
+  setResizedFileName(getResizedFileName(getFileSuffix(widthEl.value, heightEl.value, rotation)))
+  downloadBtnEl.querySelector('button').disabled = true
+})
